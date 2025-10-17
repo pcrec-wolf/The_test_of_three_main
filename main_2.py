@@ -1,9 +1,4 @@
-courses = [
-    "Java-разработчик с нуля",
-    "Fullstack-разработчик на Python",
-    "Python-разработчик с нуля",
-    "Frontend-разработчик с нуля"
-]
+courses = ["Java-разработчик с нуля", "Fullstack-разработчик на Python", "Python-разработчик с нуля", "Frontend-разработчик с нуля"]
 mentors = [
     ["Филипп Воронов", "Анна Юшина", "Иван Бочаров", "Анатолий Корсаков", "Юрий Пеньков", "Илья Сухачев", "Иван Маркитан", "Ринат Бибиков", "Вадим Ерошевичев", "Тимур Сейсембаев", "Максим Батырев", "Никита Шумский", "Алексей Степанов", "Денис Коротков", "Антон Глушков", "Сергей Индюков", "Максим Воронцов", "Евгений Грязнов", "Константин Виролайнен", "Сергей Сердюк", "Павел Дерендяев"],
     ["Евгений Шмаргунов", "Олег Булыгин", "Александр Бардин", "Александр Иванов", "Кирилл Табельский", "Александр Ульянцев", "Роман Гордиенко", "Адилет Асканжоев", "Александр Шлейко", "Алена Батицкая", "Денис Ежков", "Владимир Чебукин", "Эдгар Нуруллин", "Евгений Шек", "Максим Филипенко", "Елена Никитина"],
@@ -12,51 +7,26 @@ mentors = [
 ]
 durations = [14, 20, 12, 20]
 
-def find_extreme_courses(courses, mentors, durations):
-    """Основная функция для поиска самых коротких и длинных курсов"""
-    courses_list = []
-    for course, mentor_list, duration in zip(courses, mentors, durations):
-        course_dict = {
-            "title": course,
-            "mentors": mentor_list,
-            "duration": duration
-        }
-        courses_list.append(course_dict)
+# Список курсов в виде словарей
+courses_list = []
+for course, mentor, duration in zip(courses, mentors, durations):
+    course_dict = {"title": course, "mentors": mentor, "duration": duration}
+    courses_list.append(course_dict)
 
-    min_duration = min(durations)
-    max_duration = max(durations)
+# Создаем словарь для хранения длительностей
+durations_dict = {}
 
-    maxes = []
-    minis = []
-    for index, duration in enumerate(durations):
-        if duration == max_duration:
-            maxes.append(index)
-        elif duration == min_duration:
-            minis.append(index)
+# Заполняем словарь durations_dict
+for id, course in enumerate(courses_list):
+    key = course['duration']  # Получаем значение из ключа duration
+    if key not in durations_dict:
+        durations_dict[key] = []  # Создаем список, если ключ еще не существует
+    durations_dict[key].append(id)  # Добавляем индекс курса в список по ключу
 
-    courses_min = []
-    courses_max = []
-    for id in minis:
-        courses_min.append(courses_list[id]["title"])
-    for id in maxes:
-        courses_max.append(courses_list[id]["title"])
+# Сортируем словарь по ключам (длительность)
+durations_dict = dict(sorted(durations_dict.items()))
 
-    return {
-        "shortest": {
-            "courses": courses_min,
-            "duration": min_duration
-        },
-        "longest": {
-            "courses": courses_max,
-            "duration": max_duration
-        }
-    }
-
-def get_courses_data():
-    """Возвращает исходные данные"""
-    return courses, mentors, durations
-
-if __name__ == "__main__":
-    result = find_extreme_courses(courses, mentors, durations)
-    print(f'Самый короткий курс(ы): {", ".join(result["shortest"]["courses"])} - {result["shortest"]["duration"]} месяца(ев)')
-    print(f'Самый длинный курс(ы): {", ".join(result["longest"]["courses"])} - {result["longest"]["duration"]} месяца(ев)')
+# Выводим курсы, отсортированные по длительности
+for duration, ids in durations_dict.items():  # Пробегаем по ключам и значениям
+    for id in ids:  # Для каждого индекса в списке значений
+        print(f'{courses_list[id]["title"]} - {duration} месяцев')

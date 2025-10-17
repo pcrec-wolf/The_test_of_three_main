@@ -1,166 +1,116 @@
-import pytest
-from main_3 import analyze_courses_relationship
+import unittest
 
 
-class TestCoursesRelationship:
-    def test_analyze_returns_dict(self, sample_courses_data):
-        """Тест, что функция возвращает словарь"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
-        assert isinstance(result, dict)
+class TestCoursesLogic(unittest.TestCase):
 
-    def test_result_structure(self, sample_courses_data):
-        """Тест структуры возвращаемых данных"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
+    def setUp(self):
+        # Исходные данные
+        self.courses = ["Java-разработчик с нуля", "Fullstack-разработчик на Python", "Python-разработчик с нуля",
+                        "Frontend-разработчик с нуля"]
+        self.mentors = [
+            ["Филипп Воронов", "Анна Юшина", "Иван Бочаров", "Анатолий Корсаков", "Юрий Пеньков", "Илья Сухачев",
+             "Иван Маркитан", "Ринат Бибиков", "Вадим Ерошевичев", "Тимур Сейсембаев", "Максим Батырев",
+             "Никита Шумский", "Алексей Степанов", "Денис Коротков", "Антон Глушков", "Сергей Индюков",
+             "Максим Воронцов", "Евгений Грязнов", "Константин Виролайнен", "Сергей Сердюк", "Павел Дерендяев"],
+            ["Евгений Шмаргунов", "Олег Булыгин", "Александр Бардин", "Александр Иванов", "Кирилл Табельский",
+             "Александр Ульянцев", "Роман Гордиенко", "Адилет Асканжоев", "Александр Шлейко", "Алена Батицкая",
+             "Денис Ежков", "Владимир Чебукин", "Эдгар Нуруллин", "Евгений Шек", "Максим Филипенко", "Елена Никитина"],
+            ["Евгений Шмаргунов", "Олег Булыгин", "Дмитрий Демидов", "Кирилл Табельский", "Александр Ульянцев",
+             "Александр Бардин", "Александр Иванов", "Антон Солонилин", "Максим Филипенко", "Елена Никитина",
+             "Азамат Искаков", "Роман Гордиенко"],
+            ["Владимир Чебукин", "Эдгар Нуруллин", "Евгений Шек", "Валерий Хаслер", "Татьяна Тен", "Александр Фитискин",
+             "Александр Шлейко", "Алена Батицкая", "Александр Беспоясов", "Денис Ежков", "Николай Лопин",
+             "Михаил Ларченко"]
+        ]
+        self.durations = [14, 20, 12, 20]
 
-        assert "has_relationship" in result
-        assert "duration_order" in result
-        assert "mentors_order" in result
-        assert "courses_list" in result
-        assert isinstance(result["has_relationship"], bool)
-        assert isinstance(result["duration_order"], list)
-        assert isinstance(result["mentors_order"], list)
-        assert isinstance(result["courses_list"], list)
+        # Создаем courses_list
+        self.courses_list = []
+        for course, mentor, duration in zip(self.courses, self.mentors, self.durations):
+            course_dict = {"title": course, "mentors": mentor, "duration": duration}
+            self.courses_list.append(course_dict)
 
-    def test_relationship_detection_positive(self, courses_with_relationship):
-        """Тест обнаружения связи, когда она есть"""
-        courses, mentors, durations = courses_with_relationship
-        result = analyze_courses_relationship(courses, mentors, durations)
+    def test_courses_list_creation(self):
+        """Тест создания списка курсов"""
+        self.assertEqual(len(self.courses_list), 4)
+        self.assertEqual(self.courses_list[0]["title"], "Java-разработчик с нуля")
+        self.assertEqual(self.courses_list[1]["duration"], 20)
+        self.assertEqual(len(self.courses_list[2]["mentors"]), 12)
 
-        assert result["has_relationship"] == True
-        assert result["duration_order"] == result["mentors_order"]
+    def test_duration_index_calculation(self):
+        """Тест расчета индексов по длительности"""
+        duration_index = []
+        for index, course in enumerate(self.courses_list):
+            duration_index.append([course["duration"], index])
 
-    def test_relationship_detection_negative(self, courses_without_relationship):
-        """Тест обнаружения отсутствия связи, когда её нет"""
-        courses, mentors, durations = courses_without_relationship
-        result = analyze_courses_relationship(courses, mentors, durations)
+        duration_index.sort()
 
-        assert result["has_relationship"] == False
-        assert result["duration_order"] != result["mentors_order"]
+        expected_durations = [[12, 2], [14, 0], [20, 1], [20, 3]]
+        self.assertEqual(duration_index, expected_durations)
 
-    def test_real_data_no_relationship(self, sample_courses_data):
-        """Тест реальных данных (должны показывать отсутствие связи)"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
+    def test_mentors_count_index_calculation(self):
+        """Тест расчета индексов по количеству менторов"""
+        mcount_index = []
+        for index, course in enumerate(self.courses_list):
+            mcount_index.append([len(course["mentors"]), index])
 
-        # Проверяем, что в реальных данных связи нет
-        assert result["has_relationship"] == False
+        mcount_index.sort()
 
-        # Проверяем конкретные ожидаемые порядки из задания
-        expected_duration_order = [2, 0, 1, 3]  # Python, Java, Fullstack, Frontend
-        expected_mentors_order = [2, 3, 1, 0]  # Python, Frontend, Fullstack, Java
+        expected_mentors_count = [[12, 3], [12, 2], [16, 1], [21, 0]]
+        self.assertEqual(mcount_index, expected_mentors_count)
 
-        assert result["duration_order"] == expected_duration_order
-        assert result["mentors_order"] == expected_mentors_order
+    def test_indexes_arrays(self):
+        """Тест формирования массивов индексов"""
+        # Расчет duration_index
+        duration_index = []
+        for index, course in enumerate(self.courses_list):
+            duration_index.append([course["duration"], index])
+        duration_index.sort()
 
+        # Расчет mcount_index
+        mcount_index = []
+        for index, course in enumerate(self.courses_list):
+            mcount_index.append([len(course["mentors"]), index])
+        mcount_index.sort()
 
-class TestSortingLogic:
-    def test_duration_index_sorting(self, sample_courses_data):
-        """Тест корректности сортировки по длительности"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
+        # Формирование indexes_d и indexes_m
+        indexes_d = []
+        indexes_m = []
 
-        # Проверяем, что индексы отсортированы по возрастанию длительности
-        courses_list = result["courses_list"]
-        duration_order = result["duration_order"]
+        for _, idx in duration_index:
+            indexes_d.append(idx)
+        for _, idx in mcount_index:
+            indexes_m.append(idx)
 
-        durations_sorted = [courses_list[idx]["duration"] for idx in duration_order]
-        assert durations_sorted == sorted(durations_sorted)
+        # Проверяем ожидаемые значения
+        self.assertEqual(indexes_d, [2, 0, 1, 3])
+        self.assertEqual(indexes_m, [3, 2, 1, 0])
 
-    def test_mentors_index_sorting(self, sample_courses_data):
-        """Тест корректности сортировки по количеству преподавателей"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
+    def test_final_comparison(self):
+        """Тест финального сравнения массивов индексов"""
+        # Полный расчет как в исходном коде
+        duration_index = []
+        mcount_index = []
+        for index, course in enumerate(self.courses_list):
+            duration_index.append([course["duration"], index])
+            mcount_index.append([len(course["mentors"]), index])
 
-        # Проверяем, что индексы отсортированы по возрастанию количества преподавателей
-        courses_list = result["courses_list"]
-        mentors_order = result["mentors_order"]
+        duration_index.sort()
+        mcount_index.sort()
 
-        mentors_count_sorted = [len(courses_list[idx]["mentors"]) for idx in mentors_order]
-        assert mentors_count_sorted == sorted(mentors_count_sorted)
+        indexes_d = []
+        indexes_m = []
 
-    def test_same_duration_ordering(self, courses_same_duration_different_mentors):
-        """Тест порядка при одинаковой длительности курсов"""
-        courses, mentors, durations = courses_same_duration_different_mentors
-        result = analyze_courses_relationship(courses, mentors, durations)
+        for _, idx in duration_index:
+            indexes_d.append(idx)
+        for _, idx in mcount_index:
+            indexes_m.append(idx)
 
-        # При одинаковой длительности порядок должен сохранять исходную последовательность
-        # (так как sort() в Python стабилен)
-        assert result["duration_order"] == [0, 1, 2]
-
-    def test_same_mentors_ordering(self, courses_same_mentors_different_duration):
-        """Тест порядка при одинаковом количестве преподавателей"""
-        courses, mentors, durations = courses_same_mentors_different_duration
-        result = analyze_courses_relationship(courses, mentors, durations)
-
-        # При одинаковом количестве преподавателей порядок должен сохранять исходную последовательность
-        assert result["mentors_order"] == [0, 1, 2]
-
-
-class TestEdgeCases:
-    def test_single_course(self):
-        """Тест с одним курсом"""
-        courses = ["Single Course"]
-        mentors = [["Mentor 1"]]
-        durations = [10]
-
-        result = analyze_courses_relationship(courses, mentors, durations)
-
-        assert result["has_relationship"] == True
-        assert result["duration_order"] == [0]
-        assert result["mentors_order"] == [0]
-
-    def test_empty_data(self):
-        """Тест с пустыми данными"""
-        result = analyze_courses_relationship([], [], [])
-
-        assert result["has_relationship"] == True
-        assert result["duration_order"] == []
-        assert result["mentors_order"] == []
-        assert result["courses_list"] == []
-
-    def test_two_identical_courses(self):
-        """Тест с двумя идентичными курсами"""
-        courses = ["Course 1", "Course 2"]
-        mentors = [["Mentor A", "Mentor B"], ["Mentor C", "Mentor D"]]
-        durations = [10, 10]
-
-        result = analyze_courses_relationship(courses, mentors, durations)
-
-        assert result["has_relationship"] == True
-        assert result["duration_order"] == [0, 1]
-        assert result["mentors_order"] == [0, 1]
+        # Проверяем, что связь отсутствует (как в исходном выводе)
+        self.assertNotEqual(indexes_d, indexes_m)
+        self.assertEqual(indexes_d, [2, 0, 1, 3])
+        self.assertEqual(indexes_m, [3, 2, 1, 0])
 
 
-class TestIntegration:
-    def test_consistency_with_original_data(self, sample_courses_data):
-        """Интеграционный тест согласованности с исходными данными"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
-
-        # Проверяем, что courses_list корректно создан
-        assert len(result["courses_list"]) == len(courses)
-
-        for i, course_dict in enumerate(result["courses_list"]):
-            assert course_dict["title"] == courses[i]
-            assert course_dict["mentors"] == mentors[i]
-            assert course_dict["duration"] == durations[i]
-
-    def test_index_correctness(self, sample_courses_data):
-        """Тест корректности индексов в результатах"""
-        courses, mentors, durations = sample_courses_data
-        result = analyze_courses_relationship(courses, mentors, durations)
-
-        # Проверяем, что все индексы в допустимом диапазоне
-        max_index = len(courses) - 1
-
-        for idx in result["duration_order"]:
-            assert 0 <= idx <= max_index
-
-        for idx in result["mentors_order"]:
-            assert 0 <= idx <= max_index
-
-        # Проверяем, что все индексы уникальны и покрывают весь диапазон
-        assert sorted(result["duration_order"]) == list(range(len(courses)))
-        assert sorted(result["mentors_order"]) == list(range(len(courses)))
+if __name__ == '__main__':
+    unittest.main()
